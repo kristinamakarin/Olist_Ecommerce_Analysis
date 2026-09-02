@@ -30,7 +30,10 @@ To identify which product categories generate the most sales, I joined order ite
 *Note: "Revenue" in this analysis refers to product price only (excluding freight/shipping charges), consistent with treating shipping as a pass-through cost rather than earned revenue.*
 
 ### 2. Repeat vs. One-Time Customers
-*(fill in)*
+
+To measure customer retention, I counted the number of orders per unique customer (using `customer_unique_id`, since `customer_id` is generated per-order rather than per-person in this dataset), then classified each customer as "one-time" or "repeat" based on that count.
+
+**Key finding:** Only 2,997 customers (about 3%) made more than one purchase, while 93,099 (97%) were one-time buyers. This is a striking retention problem — Olist's revenue relies almost entirely on constantly acquiring new customers rather than repeat business, which is typically far more expensive and less sustainable than retaining existing ones.
 
 ### 3. Delivery Performance by Region
 *(fill in)*
