@@ -46,11 +46,10 @@ To see where Olist's customer base is concentrated, I counted distinct customers
 
 **Key finding:** São Paulo (SP) dominates with 40,302 customers — over 3x more than the second-place state, Rio de Janeiro (12,384). The top 2 states alone (SP and RJ) account for a substantial share of the customer base, while the remaining top 10 states each contribute a few thousand customers, showing a heavily concentrated, São Paulo-centric market rather than an evenly distributed national presence.
 
-### 4. Delivery Delays vs. Customer Satisfaction
-*(fill in)*
+### 5. Average Delivery Time by State
+To measure delivery speed by region, I calculated the number of days between purchase and actual delivery for each order, then averaged by customer state.
 
-### 5. Top Sellers and Payment Methods
-*(fill in)*
+**Key finding:** Delivery time varies significantly by state, from around 19 days in states like PI up to 29.3 days in RR (Roraima) — over a week and a half slower. States with the longest delivery times are generally in Brazil's more remote North region, likely reflecting greater logistical distance from Olist's main distribution hubs in the Southeast.
 
 ## What I Learned
 *(fill in at the end)*
