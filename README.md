@@ -10,9 +10,10 @@ The queries I wrote can be found in the [`project_sql/`](./project_sql/) folder.
 ## Questions I wanted to answer
 1. Which product categories generate the most revenue?
 2. How many customers are repeat buyers vs. one-time buyers?
-3. How does delivery time and late-delivery rate vary by region?
-4. Does late delivery correlate with lower customer satisfaction (review scores)?
-5. Which sellers and payment methods drive the most revenue?
+3. What is the average order value by customer state?
+4. Which states have the most customers?
+5. How does average delivery time vary by state?
+6. What percentage of orders are delivered late, and does it vary by state?
 
 ## Tools I used
 - **SQL** — for querying and analyzing the data
@@ -50,6 +51,12 @@ To see where Olist's customer base is concentrated, I counted distinct customers
 To measure delivery speed by region, I calculated the number of days between purchase and actual delivery for each order, then averaged by customer state.
 
 **Key finding:** Delivery time varies significantly by state, from around 19 days in states like PI up to 29.3 days in RR (Roraima) — over a week and a half slower. States with the longest delivery times are generally in Brazil's more remote North region, likely reflecting greater logistical distance from Olist's main distribution hubs in the Southeast.
+
+### 6. Percentage of Late Deliveries by State
+
+Extending the delivery time analysis, I used a CASE statement to flag each order as "late" (delivered after the estimated delivery date) or "on time", then calculated the percentage of late orders per state.
+
+**Key finding:** Late delivery rates vary widely, from around 21.4% in Alagoas (AL) down to under 10% in states like MS and TO. Notably, this ranking doesn't fully match the "average delivery days" results from the previous query — RR had the longest average delivery time overall, but only a 12.2% late rate, suggesting Olist may already be setting longer estimated delivery windows for that state to account for the distance, rather than consistently underestimating it.
 
 ## What I Learned
 *(fill in at the end)*
