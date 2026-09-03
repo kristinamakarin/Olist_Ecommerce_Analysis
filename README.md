@@ -15,6 +15,7 @@ The queries I wrote can be found in the [`project_sql/`](./project_sql/) folder.
 5. How does average delivery time vary by state?
 6. What percentage of orders are delivered late, and does it vary by state?
 7. Which month has the highest rate of late deliveries?
+8. How does customer satisfaction (review score) vary by product category?
 
 ## Tools I used
 - **SQL** — for querying and analyzing the data
@@ -63,6 +64,13 @@ Extending the delivery time analysis, I used a CASE statement to flag each order
 Extending the late-delivery analysis from Query 6, I flagged each order as "late" or "on time" and grouped by the month the order was purchased, instead of by state.
 
 **Key finding:** March had the highest late-delivery rate at 15.1%, followed by November at 12.4% — notably, November includes Black Friday, suggesting a spike in order volume during peak shopping season may strain Olist's delivery capacity. In contrast, June had the lowest late rate at just 1.8%, nearly 8x better than March.
+
+### 8. Customer Satisfaction by Product Category
+To see how customer satisfaction varies by product type, I joined reviews with order items and products, calculating the average review score per category (using the English category names for readability).
+
+**Key finding:** CDs/DVDs/Musicals had the highest average rating (4.64), followed by Fashion Children's Clothes (4.50) and Books - General Interest (4.45) — suggesting media and books tend to meet expectations reliably, likely because they're low-risk, standardized purchases. At the other end, Security & Services scored lowest by far (2.50, though with only 2 reviews), while Diapers & Hygiene (3.26) and Portable Kitchen & Food Preparers (3.27) were the lowest categories with meaningful review volume — both product types where quality/functionality issues would directly and noticeably affect the buyer's experience.
+
+*Note: A small number of reviews (1,598) belong to products with no assigned category (NULL), likely a data quality gap in the original product listings.*
 
 ## What I Learned
 *(fill in at the end)*
