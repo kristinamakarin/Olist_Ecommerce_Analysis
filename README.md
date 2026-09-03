@@ -35,11 +35,16 @@ To measure customer retention, I counted the number of orders per unique custome
 
 **Key finding:** Only 2,997 customers (about 3%) made more than one purchase, while 93,099 (97%) were one-time buyers. This is a striking retention problem — Olist's revenue relies almost entirely on constantly acquiring new customers rather than repeat business, which is typically far more expensive and less sustainable than retaining existing ones.
 
-### 3. Delivery Performance by Region
+### 3. Average Order Value by State
 
 To measure spending patterns by region, I first summed order item prices per order (to get each order's total value), then averaged those order totals grouped by customer state.
 
 **Key finding:** Average order value varies notably by state, ranging from $216.67 in Paraíba (PB) down to around $143 in Rio de Janeiro (RJ) — despite RJ being one of Brazil's largest, most economically developed states. This suggests that order value isn't simply driven by regional wealth or market size; smaller or less-saturated markets may see fewer but higher-value purchases.
+
+### 4. Top States by Number of Customers
+To see where Olist's customer base is concentrated, I counted distinct customers per state directly from the customers table.
+
+**Key finding:** São Paulo (SP) dominates with 40,302 customers — over 3x more than the second-place state, Rio de Janeiro (12,384). The top 2 states alone (SP and RJ) account for a substantial share of the customer base, while the remaining top 10 states each contribute a few thousand customers, showing a heavily concentrated, São Paulo-centric market rather than an evenly distributed national presence.
 
 ### 4. Delivery Delays vs. Customer Satisfaction
 *(fill in)*
