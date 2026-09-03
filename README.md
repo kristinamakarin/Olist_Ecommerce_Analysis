@@ -14,6 +14,7 @@ The queries I wrote can be found in the [`project_sql/`](./project_sql/) folder.
 4. Which states have the most customers?
 5. How does average delivery time vary by state?
 6. What percentage of orders are delivered late, and does it vary by state?
+7. Which month has the highest rate of late deliveries?
 
 ## Tools I used
 - **SQL** — for querying and analyzing the data
@@ -57,6 +58,11 @@ To measure delivery speed by region, I calculated the number of days between pur
 Extending the delivery time analysis, I used a CASE statement to flag each order as "late" (delivered after the estimated delivery date) or "on time", then calculated the percentage of late orders per state.
 
 **Key finding:** Late delivery rates vary widely, from around 21.4% in Alagoas (AL) down to under 10% in states like MS and TO. Notably, this ranking doesn't fully match the "average delivery days" results from the previous query — RR had the longest average delivery time overall, but only a 12.2% late rate, suggesting Olist may already be setting longer estimated delivery windows for that state to account for the distance, rather than consistently underestimating it.
+
+### 7. Late Delivery Rate by Month
+Extending the late-delivery analysis from Query 6, I flagged each order as "late" or "on time" and grouped by the month the order was purchased, instead of by state.
+
+**Key finding:** March had the highest late-delivery rate at 15.1%, followed by November at 12.4% — notably, November includes Black Friday, suggesting a spike in order volume during peak shopping season may strain Olist's delivery capacity. In contrast, June had the lowest late rate at just 1.8%, nearly 8x better than March.
 
 ## What I Learned
 *(fill in at the end)*
