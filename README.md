@@ -73,7 +73,20 @@ To see how customer satisfaction varies by product type, I joined reviews with o
 *Note: A small number of reviews (1,598) belong to products with no assigned category (NULL), likely a data quality gap in the original product listings.*
 
 ## What I Learned
-*(fill in at the end)*
+Working through this project deepened my SQL skills in several ways beyond the fundamentals from my first project:
+
+- **Two-step aggregation:** Recognizing when raw data is "too granular" for the question being asked — such as averaging order value, where I first had to sum item-level prices into order-level totals (via a CTE) before averaging across orders, to avoid distorting results.
+- **CASE for classification, not just display:** Using `CASE` to flag individual rows (e.g. "late" vs. "on time") *before* aggregating, rather than applying it to an already-averaged result — an important distinction that changes what the analysis actually measures.
+- **The `SUM(CASE...)` counting pattern:** Using `SUM()` on 0/1 flags as a way to count how many rows meet a condition within each group, alongside `COUNT(*)` for the total, to calculate percentages.
+- **Working with real-world data quality issues:** Encountering and resolving foreign key violations caused by missing category translations, and NULL categories in the review data — realistic problems that don't show up in cleaner tutorial datasets.
+- **Choosing the right grain for `customer_id`:** Learning to distinguish between `customer_id` (unique per order) and `customer_unique_id` (unique per person) — a dataset-specific quirk that would have silently produced wrong retention numbers if missed.
 
 ## Conclusions
-*(fill in at the end)*
+This analysis paints a picture of a marketplace with real growth opportunities alongside operational challenges:
+
+- **Revenue is healthy and diversified** across categories (Health & Beauty, Watches & Gifts, Home goods), but **customer retention is a major weak point** — with 97% of customers never returning, Olist's growth depends almost entirely on constant new customer acquisition rather than repeat business.
+- **Geography plays a large role in both reach and performance:** São Paulo dominates the customer base, while delivery times and late-delivery rates vary significantly by region, with more remote states facing both slower and somewhat less predictable delivery.
+- **Seasonal strain is visible in the data:** late deliveries spike in November, aligning with Black Friday, suggesting delivery capacity doesn't fully scale with peak demand.
+- **Customer satisfaction is generally solid but uneven across categories** — low-risk, standardized products (books, media) score highest, while categories more prone to quality or fit issues score lower, independent of delivery performance.
+
+Overall, the biggest opportunity area this analysis points to is **customer retention** — improving it even modestly could meaningfully reduce Olist's reliance on constant new customer acquisition, which is typically far more costly than retaining existing customers.
