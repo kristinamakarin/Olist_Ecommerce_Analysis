@@ -72,9 +72,12 @@ To see where Olist's customer base is concentrated, I counted distinct customers
 > **Key finding:** São Paulo (SP) dominates with 40,302 customers — over 3x more than the second-place state, Rio de Janeiro (12,384). The top 2 states alone (SP and RJ) account for a substantial share of the customer base, while the remaining top 10 states each contribute a few thousand customers, showing a heavily concentrated, São Paulo-centric market rather than an evenly distributed national presence.
 
 ### 5. Average Delivery Time by State
-To measure delivery speed by region, I calculated the number of days between purchase and actual delivery for each order, then averaged by customer state.
 
-> **Key finding:** Delivery time varies significantly by state, from around 19 days in states like PI up to 29.3 days in RR (Roraima) — over a week and a half slower. States with the longest delivery times are generally in Brazil's more remote North region, likely reflecting greater logistical distance from Olist's main distribution hubs in the Southeast.
+To measure delivery speed by region, I calculated the number of days between purchase and actual delivery for each delivered order, then averaged by customer state. I also counted the orders per state to see how reliable each average is.
+
+> **Key finding:** Delivery time varies strongly by state. São Paulo (SP) is the fastest at 8.7 days and also has by far the most orders (40,494), followed by Paraná (PR) and Minas Gerais (MG) at 11.9 days. At the other end, Roraima (RR) takes 29.3 days ,about 3.4 times slower than SP. The slower states are in the North and Northeast of Brazil (for example CE at 21.2 days, AC at 21.0 and PB at 20.4, with RR at the very bottom), likely reflecting the greater logistical distance from the Southeast.
+
+*Note: Small states have few delivered orders (for example AC has only 80), so their averages are less reliable than those of large states like SP.*
 
 ### 6. Percentage of Late Deliveries by State
 
@@ -142,6 +145,12 @@ See notebook: [`1_EDA_intro.ipynb`](./project_python/1_EDA_intro.ipynb)
 ![Product Price Distribution](./project_python/images/product_price_distribution.png)
 
 > **Key insight:** Prices are strongly right-skewed. Roughly three quarters of the items cost less than about R$135, and a long tail of expensive items reaches R$1,400 and above. Because of this tail, the median describes a typical price better than the mean.
+
+#### Delivery Time 
+
+![Distribution of Delivery Time](./project_python/images/delivery_time.png)
+
+> **Key insight:** Most orders arrive quickly: the median delivery time is **10 days**, and delivery times peak at around 6 to 9 days. Roughly 85% of orders arrive within three weeks. The distribution is right-skewed: a long tail of slow deliveries pulls the mean (**12 days**) above the median, so the median describes a typical delivery better. The chart is cut at the 99th percentile (about 46 days), so around 1% of orders took even longer. This national picture complements the SQL analysis by state, where averages hide how much individual orders vary.
 
 </details>
 
