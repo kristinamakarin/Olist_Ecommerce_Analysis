@@ -152,6 +152,30 @@ See notebook: [`1_EDA_intro.ipynb`](./project_python/1_EDA_intro.ipynb)
 
 > **Key insight:** Most orders arrive quickly: the median delivery time is **10 days**, and delivery times peak at around 6 to 9 days. Roughly 85% of orders arrive within three weeks. The distribution is right-skewed: a long tail of slow deliveries pulls the mean (**12 days**) above the median, so the median describes a typical delivery better. The chart is cut at the 99th percentile (about 46 days), so around 1% of orders took even longer. This national picture complements the SQL analysis by state, where averages hide how much individual orders vary.
 
+### 2. Do Late Deliveries Hurt Customer Satisfaction?
+
+The SQL part measured late deliveries and review scores separately. Here I connect them: I marked each delivered order as on time or late (delivered at least one day after the estimated date), measured how many days late it was, and compared the review scores.
+
+See notebook: [`2_delivery_vs_reviews.ipynb`](./project_python/2_delivery_vs_reviews.ipynb)
+
+```python
+df_delivered['days_late'] = (delivered_day - estimated_day).dt.days
+df_delivered['is_late'] = df_delivered['days_late'] > 0
+
+review_per_order = reviews.groupby('order_id')['review_score'].mean().reset_index()
+df = df_delivered.merge(review_per_order, on='order_id', how='inner')
+```
+
+![Average Review Score: On Time vs. Late Deliveries](./project_python/images/delivery_vs_reviews_overview.png)
+
+> **Key insight:** Late deliveries are strongly linked to lower ratings. Orders delivered on time average **4.29** stars, while late orders average **2.27**, a gap of about two stars. Late orders are only **6.7%** of delivered orders, yet **62.4%** of them received 1 or 2 stars, compared with only **9.2%** of on-time orders, about 6.8 times more often. As a result, late deliveries account for roughly a third (about **33%**) of all 1-2 star reviews, despite being a small share of orders.
+
+![Average Review Score by Delivery Delay](./project_python/images/delivery_vs_reviews_by_delay.png)
+
+> **Key insight:** Even a short delay hurts: orders that arrive only 1 to 3 days late already lose a full star (**3.29** vs. 4.29). The score keeps falling to **2.11** for 4 to 7 days and **1.67** for 8 to 14 days, then levels off at about **1.7** for delays above two weeks, since customers who wait that long almost always give the lowest rating. The estimated delivery date works like a promise: breaking it matters more than how long the delay lasts.
+
+**Limitations:** This shows an association, not proof of cause. Late orders may also differ in other ways (distance, product type), and I averaged the score for orders with more than one review. Orders are counted as late only when they arrive at least one full day after the estimated date.
+
 </details>
 
 
