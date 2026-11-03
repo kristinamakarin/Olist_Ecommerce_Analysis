@@ -21,8 +21,10 @@ The data comes from the [Brazilian E-Commerce Public Dataset by Olist](https://w
 7. Which month has the highest rate of late deliveries?
 8. How does customer satisfaction (review score) vary by product category?
 
-
 **Python**
+1. What does the dataset look like overall (volume, quality, customers, payments, geography)?
+2. Do late deliveries lead to lower review scores, and does the score keep dropping as the delay grows?
+3. How did revenue and order volume change month by month?
 
 ## Tools I used
  
@@ -86,9 +88,9 @@ Extending the delivery time analysis, I used a CASE statement to flag each order
 > **Key finding:** Late delivery rates vary widely, from around 21.4% in Alagoas (AL) down to under 10% in states like MS and TO. Notably, this ranking doesn't fully match the "average delivery days" results from the previous query — RR had the longest average delivery time overall, but only a 12.2% late rate, suggesting Olist may already be setting longer estimated delivery windows for that state to account for the distance, rather than consistently underestimating it.
 
 ### 7. Late Delivery Rate by Month
-Extending the late-delivery analysis from Query 6, I flagged each order as "late" or "on time" and grouped by the month the order was purchased, instead of by state.
+Extending the late-delivery analysis from Query 6, I flagged each order as "late" or "on time" and grouped by the year and month in which the order was purchased. Months with fewer than 100 delivered orders are left out, because their percentages are not reliable. An earlier version grouped by month number only, which mixed March 2017 with March 2018 and hid how different the two years were.
 
-> **Key finding:** March had the highest late-delivery rate at 15.1%, followed by November at 12.4% — notably, November includes Black Friday, suggesting a spike in order volume during peak shopping season may strain Olist's delivery capacity. In contrast, June had the lowest late rate at just 1.8%, nearly 8x better than March.
+> **Key finding:** Late deliveries were concentrated in a few months rather than in a calendar season. **March 2018 had the highest late-delivery rate at 19.0%** (1,328 of 7,003 orders), followed by February 2018 (14.1%) and November 2017 (12.4%), the month of Black Friday. March 2017, by comparison, had only 4.6%. The best large month was June 2018 with just 1.2% late (71 of 6,096 orders), about 16 times better than March 2018. Order volume alone does not explain the spikes: January 2018 had a similar number of orders to March 2018 but only 5.7% were late, so the February-March 2018 problem was probably something specific to that period, which this data cannot explain.
 
 ### 8. Customer Satisfaction by Product Category
 To see how customer satisfaction varies by product type, I joined reviews with order items and products, calculating the average review score per category (using the English category names for readability).
@@ -175,6 +177,68 @@ df = df_delivered.merge(review_per_order, on='order_id', how='inner')
 > **Key insight:** Even a short delay hurts: orders that arrive only 1 to 3 days late already lose a full star (**3.29** vs. 4.29). The score keeps falling to **2.11** for 4 to 7 days and **1.67** for 8 to 14 days, then levels off at about **1.7** for delays above two weeks, since customers who wait that long almost always give the lowest rating. The estimated delivery date works like a promise: breaking it matters more than how long the delay lasts.
 
 **Limitations:** This shows an association, not proof of cause. Late orders may also differ in other ways (distance, product type), and I averaged the score for orders with more than one review. Orders are counted as late only when they arrive at least one full day after the estimated date.
+
+### 3. Revenue Over Time
+
+The SQL part looked at categories, states and delivery performance, but had no time trend. Here I summed the item price by purchase month and counted distinct orders, using only full months (January 2017 to August 2018). Canceled and unavailable orders are excluded, and orders still in progress are included, so the most recent months are not artificially low.
+
+See notebook: [`3_revenue_over_time.ipynb`](./project_python/3_revenue_over_time.ipynb)
+
+```python
+monthly = sales.groupby('year_month').agg(
+    revenue=('price', 'sum'),
+    orders=('order_id', 'nunique')
+)
+monthly['avg_order_value'] = monthly['revenue'] / monthly['orders']
+```
+
+![Monthly Revenue and Orders](./project_python/images/revenue_over_time.png)
+
+> **Key insight:**
+> * **Fast growth through 2017:** monthly revenue grew from about R$120K in January 2017 to **R$1.0M in November 2017** (roughly eight times more), while monthly orders grew from about 800 to about 7,400.
+> * **November 2017 was the peak:** revenue was 52% higher than in October, most likely because of Black Friday, and then fell by 26% in December, which suggests that part of the demand was pulled forward into the sale month.
+> * **Growth stalled in 2018:** revenue stayed in a range of about R$830K to R$1.0M, and orders between about 6,100 and 7,200 per month, with a slow decline from June onward.
+> * **Growth came from more orders, not bigger orders:** the average order value stayed around R$135.
+
+**Limitations:** The data covers only about two years, so there is a single Black Friday and I cannot separate a seasonal effect from the general growth trend. Revenue means item price only (freight excluded).
+
+### 4. Category Sales vs. Customer Satisfaction
+
+The SQL part ranked categories by revenue and, separately, by review score. Here I put both on one chart to see which popular categories disappoint customers. For every category with at least 100 orders I compared the number of orders, revenue and the average review score. The chart shows the 15 categories with the highest revenue; bubble size shows revenue and the dashed line is the overall average score (4.04).
+
+See notebook: [`4_category_sales_vs_satisfaction.ipynb`](./project_python/4_category_sales_vs_satisfaction.ipynb)
+
+```python
+df_category = items.groupby('product_category_name_english').agg(
+    orders=('order_id', 'nunique'),
+    revenue=('price', 'sum'),
+    avg_review=('review_score', 'mean')
+)
+priority = df_category[(df_category['orders'] > df_category['orders'].median()) & (df_category['avg_review'] < overall_review)]
+```
+
+![Category Sales vs. Customer Satisfaction](./project_python/images/category_sales_vs_satisfaction.png)
+
+> **Key insight:**
+> * **The biggest category is also one of the happiest:** `health_beauty` has the highest revenue and an average score of about 4.14, above the overall average. `sports_leisure` (about 4.11) is similar.
+> * **Several large categories fall below average:** `bed_bath_table` sells the most orders (9,313) but scores only 3.90, and `computers_accessories` (3.93), `furniture_decor` (3.91) and `telephony` (3.95) are also below the 4.04 average. `watches_gifts`, the second category by revenue, is right at the average (4.02).
+> * **The weakest category is `office_furniture`** with 3.49, about half a star below the average, although it is much smaller (1,263 orders).
+> * **A pattern, not a proof:** furniture and home categories dominate the list of below-average categories. A possible reason is that bulky products are harder to deliver and more likely to arrive damaged, but this analysis does not test it.
+
+**Categories with orders above the median threshold of 508 and an average review score below the overall average** (the most valuable ones to improve are at the top, sorted by revenue):
+
+| Category | Orders | Revenue (R$) | Avg. review |
+|---|---|---|---|
+| watches_gifts | 5,576 | 1,196,496 | 4.02 |
+| bed_bath_table | 9,313 | 1,026,192 | 3.90 |
+| computers_accessories | 6,649 | 906,893 | 3.93 |
+| furniture_decor | 6,398 | 723,344 | 3.91 |
+| baby | 2,861 | 408,364 | 4.01 |
+| telephony | 4,168 | 319,939 | 3.95 |
+| office_furniture | 1,263 | 271,076 | 3.49 |
+| consoles_games | 1,052 | 155,371 | 4.02 |
+
+**Limitations:** The differences from the average are small (mostly 0.1 to 0.15 stars), so they show where to look, not what is broken. Review scores are averaged per order and counted once for every item, so orders with several items weigh more. Items without a category are excluded, and the sample for small categories is limited.
 
 </details>
 
