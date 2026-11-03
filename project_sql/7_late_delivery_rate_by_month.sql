@@ -8,7 +8,7 @@ Question: Which month has the highest rate of late deliveries?
 
 WITH delivery_status AS (
     SELECT
-        EXTRACT(MONTH FROM order_purchase_timestamp) AS month,
+        TO_CHAR(order_purchase_timestamp, 'YYYY-MM') AS year_month,
         orders.order_id,
         CASE
             WHEN orders.order_delivered_customer_date::date > orders.order_estimated_delivery_date::date 
@@ -22,13 +22,15 @@ WITH delivery_status AS (
 )
 
 SELECT
-    delivery_status.month,
+    year_month,
     COUNT(*) AS total_orders,
     SUM(is_late) AS late_orders,
     ROUND(100.0 * SUM(is_late) / COUNT(*), 1) AS pct_late
 FROM
     delivery_status
 GROUP BY
-    month
+    year_month
+HAVING
+    COUNT(*) >= 100
 ORDER BY
     pct_late DESC;
