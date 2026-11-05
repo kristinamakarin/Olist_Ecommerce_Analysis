@@ -13,7 +13,7 @@ The data comes from the [Brazilian E-Commerce Public Dataset by Olist](https://w
 
 - **Retention is the weakest point:** 97% of customers bought only once, so growth relies on constantly acquiring new customers.
 - **Late deliveries are the biggest drag on satisfaction:** the 6.7% of orders that arrive late average 2.27 stars vs. 4.29 on time, and 62.4% of them get 1 or 2 stars vs. 9.2% of on-time orders.
-- **Delivery problems cluster in time and place:** March 2018 had 19.0% late orders vs. 1.2% in June 2018, and Roraima waits 29.3 days on average vs. 8.7 in São Paulo. (add the heatmap finding)
+- **Delivery problems come in waves, not evenly through the year:** March 2018 had 19.0% late orders vs. 1.2% in June 2018. The state-by-month heatmap shows two episodes: November-December 2017 (worst in Rio de Janeiro and Espírito Santo) and February-March 2018, when almost every large state was affected, while São Paulo stayed below about 10%. Rio de Janeiro alone accounts for about 23% of all late orders with only 13% of the orders. Delivery speed also differs by region: orders to Ceará take 21.2 days on average vs. 8.7 in São Paulo.
 - **Revenue grew about eightfold during 2017** to R$1.0M in November 2017, then flattened in 2018.
 - **Furniture and home categories** (`bed_bath_table`, `furniture_decor`, `office_furniture`) combine high sales with below-average ratings.
 
@@ -94,7 +94,7 @@ To see where Olist's customer base is concentrated, I counted distinct customers
 
 To measure delivery speed by region, I calculated the number of days between purchase and actual delivery for each delivered order, then averaged by customer state. I also counted the orders per state to see how reliable each average is.
 
-> **Key finding:** Delivery time varies strongly by state. São Paulo (SP) is the fastest at 8.7 days and also has by far the most orders (40,494), followed by Paraná (PR) and Minas Gerais (MG) at 11.9 days. At the other end, Roraima (RR) takes 29.3 days, about 3.4 times slower than SP. The slower states are in the North and Northeast of Brazil (for example CE at 21.2 days, AC at 21.0 and PB at 20.4, with RR at the very bottom), likely reflecting the greater logistical distance from the Southeast.
+> **Key finding:** Delivery time varies strongly by state. São Paulo (SP) is the fastest at 8.7 days and also has by far the most orders (40,494), followed by Paraná (PR) and Minas Gerais (MG) at 11.9 days. At the other end, Roraima (RR) takes 29.3 days (only 41 delivered orders, so this average is less reliable), about 3.4 times slower than SP. The slower states are in the North and Northeast of Brazil (for example CE at 21.2 days, AC at 21.0 and PB at 20.4, with RR at the very bottom), likely reflecting the greater logistical distance from the Southeast.
 
 *Note: Small states have few delivered orders (for example AC has only 80), so their averages are less reliable than those of large states like SP.*
 
@@ -276,7 +276,7 @@ sns.heatmap(late_rate, cmap='Reds', cbar_kws={'label': '% of orders delivered la
 > * **Wave 1, November-December 2017 (Black Friday season):** Rio de Janeiro (about 25-27%) and Espírito Santo (about 23% in November) were hit hardest, while São Paulo and Minas Gerais stayed much lower.
 > * **Wave 2, February-March 2018, was network-wide:** in March 2018 almost every state turned dark red, with Espírito Santo (41.4%), Rio de Janeiro (about 35%) and Bahia (about 30%) the worst. Only São Paulo stayed below 10%.
 > * **Rio de Janeiro was not a chronic problem:** it was at normal levels (about 4-8%) until October 2017, then ran between about 13% and 35% for five months. Bahia and Espírito Santo were slower to recover and stayed elevated (about 15-18%) in April and May 2018, when most other states were back to normal.
-> * **Rio de Janeiro matters most in absolute terms:** it has about 13% of all orders but about 23% of all late ones, while São Paulo has 42% of the orders and 28% of the late ones.
+> * **Rio de Janeiro matters most in absolute terms:** it has about 13% of all orders but about 23% of all late ones(all months), while São Paulo has 42% of the orders and 28% of the late ones.
 > * **São Paulo and Paraná were the most reliable states**, rarely above about 10% in any month.
 
 ![Share of Late Deliveries by Purchase Month](./project_python/images/late_delivery_monthly.png)
@@ -286,6 +286,19 @@ sns.heatmap(late_rate, cmap='Reds', cbar_kws={'label': '% of orders delivered la
 **Limitations:** The heatmap covers the 10 states with the most orders and the months from February 2017 to July 2018. January 2017 has too few orders, and the last month is left out because orders not yet delivered by then are missing, which would understate its late rate. Cells with fewer than 30 orders are hidden. Because of this window, the numbers differ slightly from SQL query 6, which covers all months; reproducing query 6 in pandas with the same rule gave identical results (for example AL 21.4% and RJ 12.1%). The heatmap shows where and when deliveries were late, not why: the cause of the February-March 2018 episode is not in this dataset.
 
 </details>
+
+## Conclusions
+
+This analysis paints a picture of a marketplace with real growth alongside clear operational weaknesses:
+
+- **Revenue is healthy and diversified, but retention is the biggest weakness.** Revenue grew about eightfold during 2017 and is spread across very different categories (Health & Beauty, Watches & Gifts, Bed, Bath & Table), yet 97% of customers never came back.
+- **Delivery is the main driver of customer satisfaction.** Late orders are only 6.7% of deliveries, but they average 2.27 stars vs. 4.29 for on-time orders and account for about a third of all 1-2 star reviews. Even a delay of 1 to 3 days costs about a full star.
+- **Delivery problems come in waves, in specific places.** Late deliveries peaked during Black Friday season in November 2017 (12.4%, worst in Rio de Janeiro and Espírito Santo) and again in February-March 2018 (14.1% and 19.0%), when nearly every large state was affected. Outside these periods the late rate was only about 3-5%, and São Paulo stayed reliable throughout. Remote states also wait much longer in general (for example 21.2 days in Ceará vs. 8.7 in São Paulo).
+- **Satisfaction differs by category, and several large categories are below average.** Health & Beauty scores above the average (about 4.14), while `bed_bath_table` (3.90), `computers_accessories` (3.93) and `furniture_decor` (3.91) sell in large volumes but score lower.
+
+Overall, the data points to two connected opportunities: **delivery reliability**, which most directly affects ratings, and **customer retention**, which would reduce the dependence on constant new-customer acquisition. It is plausible that better delivery would also improve repeat purchases, but this dataset cannot show that, so it remains a hypothesis to test.
+
+**Limitations:** The data covers only about two years, so seasonal effects cannot be separated from growth. Most findings are associations, not proof of cause, and the differences between categories are small.
 
 ## Recommendations
 
@@ -311,16 +324,3 @@ Working through this project deepened my SQL and Python skills in several ways b
 - **Visualizing two dimensions at once:** scatter and bubble charts, and heatmaps (state by month) instead of separate tables.
 - **Not trusting small samples:** hiding months and categories with too few orders, and checking whether an association could be explained by something else.
 - **Hiding unreliable results:** using `.where()` to blank out state-month combinations with fewer than 30 orders, so a single late order in a tiny cell does not look like a 50% problem.
-
-## Conclusions
-
-This analysis paints a picture of a marketplace with real growth alongside clear operational weaknesses:
-
-- **Revenue is healthy and diversified, but retention is the biggest weakness.** Revenue grew about eightfold during 2017 and is spread across very different categories (Health & Beauty, Watches & Gifts, Bed, Bath & Table), yet 97% of customers never came back.
-- **Delivery is the main driver of customer satisfaction.** Late orders are only 6.7% of deliveries, but they average 2.27 stars vs. 4.29 for on-time orders and account for about a third of all 1-2 star reviews. Even a delay of 1 to 3 days costs about a full star.
-- **Delivery problems come in waves, in specific places.** Late deliveries peaked during Black Friday season in November 2017 (12.4%, worst in Rio de Janeiro and Espírito Santo) and again in February-March 2018 (14.1% and 19.0%), when nearly every large state was affected. Outside these periods the late rate was only about 3-5%, and São Paulo stayed reliable throughout. Remote states also wait much longer in general (29.3 days in Roraima vs. 8.7 in São Paulo).
-- **Satisfaction differs by category, and several large categories are below average.** Health & Beauty scores above the average (about 4.14), while `bed_bath_table` (3.90), `computers_accessories` (3.93) and `furniture_decor` (3.91) sell in large volumes but score lower.
-
-Overall, the data points to two connected opportunities: **delivery reliability**, which most directly affects ratings, and **customer retention**, which would reduce the dependence on constant new-customer acquisition. It is plausible that better delivery would also improve repeat purchases, but this dataset cannot show that, so it remains a hypothesis to test.
-
-**Limitations:** The data covers only about two years, so seasonal effects cannot be separated from growth. Most findings are associations, not proof of cause, and the differences between categories are small.
