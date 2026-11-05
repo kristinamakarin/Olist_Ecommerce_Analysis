@@ -9,6 +9,14 @@ The data comes from the [Brazilian E-Commerce Public Dataset by Olist](https://w
 - SQL queries: [`project_sql/`](./project_sql/)
 - Python notebooks: [`project_python/`](./project_python/)
 
+## Key Findings
+
+- **Retention is the weakest point:** 97% of customers bought only once, so growth relies on constantly acquiring new customers.
+- **Late deliveries are the biggest drag on satisfaction:** the 6.7% of orders that arrive late average 2.27 stars vs. 4.29 on time, and 62.4% of them get 1 or 2 stars vs. 9.2% of on-time orders.
+- **Delivery problems cluster in time and place:** March 2018 had 19.0% late orders vs. 1.2% in June 2018, and Roraima waits 29.3 days on average vs. 8.7 in São Paulo. (add the heatmap finding)
+- **Revenue grew about eightfold during 2017** to R$1.0M in November 2017, then flattened in 2018.
+- **Furniture and home categories** (`bed_bath_table`, `furniture_decor`, `office_furniture`) combine high sales with below-average ratings.
+
 ## Questions I wanted to answer
  
 **SQL**
@@ -25,6 +33,8 @@ The data comes from the [Brazilian E-Commerce Public Dataset by Olist](https://w
 1. What does the dataset look like overall (volume, quality, customers, payments, geography)?
 2. Do late deliveries lead to lower review scores, and does the score keep dropping as the delay grows?
 3. How did revenue and order volume change month by month?
+4. Which categories sell a lot but disappoint customers?
+5. Are late deliveries a regional problem, a seasonal problem, or both?
 
 ## Tools I used
  
@@ -43,6 +53,13 @@ conda activate olist
 ```
  
 Currency is the Brazilian real (R$). "Revenue" means item price only, excluding freight.
+
+## Definitions
+
+- **Late order:** delivered at least one full day after the estimated delivery date (same rule in SQL and Python).
+- **Customer:** identified by `customer_unique_id`, because `customer_id` changes with every order.
+- **Revenue:** item price only, freight excluded. The SQL queries count all orders; the Python revenue analysis excludes canceled and unavailable ones.
+- **Review score per order:** averaged when an order has more than one review.
  
 ## The Analysis (SQL)
 
@@ -77,7 +94,7 @@ To see where Olist's customer base is concentrated, I counted distinct customers
 
 To measure delivery speed by region, I calculated the number of days between purchase and actual delivery for each delivered order, then averaged by customer state. I also counted the orders per state to see how reliable each average is.
 
-> **Key finding:** Delivery time varies strongly by state. São Paulo (SP) is the fastest at 8.7 days and also has by far the most orders (40,494), followed by Paraná (PR) and Minas Gerais (MG) at 11.9 days. At the other end, Roraima (RR) takes 29.3 days ,about 3.4 times slower than SP. The slower states are in the North and Northeast of Brazil (for example CE at 21.2 days, AC at 21.0 and PB at 20.4, with RR at the very bottom), likely reflecting the greater logistical distance from the Southeast.
+> **Key finding:** Delivery time varies strongly by state. São Paulo (SP) is the fastest at 8.7 days and also has by far the most orders (40,494), followed by Paraná (PR) and Minas Gerais (MG) at 11.9 days. At the other end, Roraima (RR) takes 29.3 days, about 3.4 times slower than SP. The slower states are in the North and Northeast of Brazil (for example CE at 21.2 days, AC at 21.0 and PB at 20.4, with RR at the very bottom), likely reflecting the greater logistical distance from the Southeast.
 
 *Note: Small states have few delivered orders (for example AC has only 80), so their averages are less reliable than those of large states like SP.*
 
@@ -85,7 +102,7 @@ To measure delivery speed by region, I calculated the number of days between pur
 
 Extending the delivery time analysis, I used a CASE statement to flag each order as "late" (delivered after the estimated delivery date) or "on time", then calculated the percentage of late orders per state.
 
-> **Key finding:** Late delivery rates vary widely, from around 21.4% in Alagoas (AL) down to under 10% in states like MS and TO. Notably, this ranking doesn't fully match the "average delivery days" results from the previous query — RR had the longest average delivery time overall, but only a 12.2% late rate, suggesting Olist may already be setting longer estimated delivery windows for that state to account for the distance, rather than consistently underestimating it.
+> **Key finding:** Late delivery rates vary widely, from 21.4% in Alagoas (AL), 17.4% in Maranhão (MA) and 15.2% in Sergipe (SE) down to under 3% in Amazonas (AM) and Rondônia (RO). The three biggest states differ strongly: São Paulo (4.5%) and Minas Gerais (4.6%) are reliable, but Rio de Janeiro has 12.1%. Because RJ is so large, it accounts for about 23% of all late orders (1,495 of 6,535) while having only 13% of the orders, whereas São Paulo has 42% of the orders but 28% of the late ones. The ranking also doesn't match the average delivery days from the previous query: remote northern states with long delivery times, such as Acre (21.0 days on average) and Rondônia (19.3 days), have some of the lowest late rates (3.8% and 2.9%). This suggests that Olist sets longer estimated delivery dates for distant states instead of consistently underestimating them, although these states are small, so the conclusion is tentative.
 
 ### 7. Late Delivery Rate by Month
 Extending the late-delivery analysis from Query 6, I flagged each order as "late" or "on time" and grouped by the year and month in which the order was purchased. Months with fewer than 100 delivered orders are left out, because their percentages are not reliable. An earlier version grouped by month number only, which mixed March 2017 with March 2018 and hid how different the two years were.
@@ -116,7 +133,7 @@ See notebook: [`1_EDA_intro.ipynb`](./project_python/1_EDA_intro.ipynb)
 
 ![Number of Orders per Month](./project_python/images/orders_per_month.png)
 
-> **Key insight:** Olist grew quickly through 2017, from about 800 orders in January to about 4,600 in October. Orders peaked in **November 2017 at about 7,500**, most likely because of Black Friday, then dropped to about 5,700 in December and settled at roughly 6,200 to 7,300 per month during 2018. The first months of 2016 and the last two months of 2018 have almost no orders, because the data collection started and ended mid-period, so those months should be left out of any trend analysis. The November peak matches the SQL finding that late deliveries rise in November.
+> **Key insight:** Olist grew quickly through 2017, from about 800 orders in January to about 4,600 in October. Orders peaked in **November 2017 at about 7,500**, most likely because of Black Friday, then dropped to about 5,700 in December and settled at roughly 6,200 to 7,300 per month during 2018. The first months of 2016 and the last two months of 2018 have almost no orders, because the data collection started and ended mid-period, so those months should be left out of any trend analysis. November 2017, the busiest month, also had one of the highest late-delivery rates in the SQL analysis (12.4%), although March 2018 was worse.
 
 #### Customers
 
@@ -195,9 +212,9 @@ monthly['avg_order_value'] = monthly['revenue'] / monthly['orders']
 ![Monthly Revenue and Orders](./project_python/images/revenue_over_time.png)
 
 > **Key insight:**
-> * **Fast growth through 2017:** monthly revenue grew from about R$120K in January 2017 to **R$1.0M in November 2017** (roughly eight times more), while monthly orders grew from about 800 to about 7,400.
+> * **Fast growth through 2017:** monthly revenue grew from about R$120K in January 2017 to **R$1.0M in November 2017** (roughly eight times more), while monthly orders grew from about 800 to about 7,400 (orders here exclude canceled and unavailable ones, so counts are slightly lower than in the EDA).
 > * **November 2017 was the peak:** revenue was 52% higher than in October, most likely because of Black Friday, and then fell by 26% in December, which suggests that part of the demand was pulled forward into the sale month.
-> * **Growth stalled in 2018:** revenue stayed in a range of about R$830K to R$1.0M, and orders between about 6,100 and 7,200 per month, with a slow decline from June onward.
+> * **Growth stalled in 2018:** revenue stayed in a range of about R$830K to R$1.0M, and orders between about 6,100 and 7,200 per month, until a drop in June, after which revenue remained around R$850K to R$880K.
 > * **Growth came from more orders, not bigger orders:** the average order value stayed around R$135.
 
 **Limitations:** The data covers only about two years, so there is a single Black Friday and I cannot separate a seasonal effect from the general growth trend. Revenue means item price only (freight excluded).
@@ -240,14 +257,70 @@ priority = df_category[(df_category['orders'] > df_category['orders'].median()) 
 
 **Limitations:** The differences from the average are small (mostly 0.1 to 0.15 stars), so they show where to look, not what is broken. Review scores are averaged per order and counted once for every item, so orders with several items weigh more. Items without a category are excluded, and the sample for small categories is limited.
 
+### 5. Late Deliveries by State and Month
+
+The SQL part measured late deliveries by state (query 6) and by month (query 7) separately. Here I combined both in a heatmap for the 10 states with the most orders, to see whether late deliveries are a regional problem, a seasonal one, or both. Cells with fewer than 30 orders are hidden because their percentages are not reliable.
+
+See notebook: [`5_late_delivery_heatmap.ipynb`](./project_python/5_late_delivery_heatmap.ipynb)
+
+```python
+late_rate = df_top.pivot_table(index='customer_state', columns='year_month', values='is_late', aggfunc='mean') * 100
+late_rate = late_rate.where(order_count >= 30)
+sns.heatmap(late_rate, cmap='Reds', cbar_kws={'label': '% of orders delivered late'})
+```
+
+![Late Delivery Rate by State and Purchase Month](./project_python/images/late_delivery_heatmap.png)
+
+> **Key insight:**
+> * **Late deliveries came in two waves, not evenly through the year.** Outside November 2017 to March 2018, most large states stayed at roughly 2% to 8% late orders.
+> * **Wave 1, November-December 2017 (Black Friday season):** Rio de Janeiro (about 25-27%) and Espírito Santo (about 23% in November) were hit hardest, while São Paulo and Minas Gerais stayed much lower.
+> * **Wave 2, February-March 2018, was network-wide:** in March 2018 almost every state turned dark red, with Espírito Santo (41.4%), Rio de Janeiro (about 35%) and Bahia (about 30%) the worst. Only São Paulo stayed below 10%.
+> * **Rio de Janeiro was not a chronic problem:** it was at normal levels (about 4-8%) until October 2017, then ran between about 13% and 35% for five months. Bahia and Espírito Santo were slower to recover and stayed elevated (about 15-18%) in April and May 2018, when most other states were back to normal.
+> * **Rio de Janeiro matters most in absolute terms:** it has about 13% of all orders but about 23% of all late ones, while São Paulo has 42% of the orders and 28% of the late ones.
+> * **São Paulo and Paraná were the most reliable states**, rarely above about 10% in any month.
+
+![Share of Late Deliveries by Purchase Month](./project_python/images/late_delivery_monthly.png)
+
+> **Key insight:** Across all states, the late rate stayed around 3% for most of 2017, then jumped to 12.4% in November 2017 and peaked at 19.0% in March 2018 (14.1% in February), before falling back to 4.5% in April and 1.2% in June 2018. These values match SQL query 7, which confirms that both analyses use the same definition of a late order. The heatmap adds the missing detail: the March 2018 peak was a country-wide event, while the November 2017 peak was concentrated in a few states.
+
+**Limitations:** The heatmap covers the 10 states with the most orders and the months from February 2017 to July 2018. January 2017 has too few orders, and the last month is left out because orders not yet delivered by then are missing, which would understate its late rate. Cells with fewer than 30 orders are hidden. Because of this window, the numbers differ slightly from SQL query 6, which covers all months; reproducing query 6 in pandas with the same rule gave identical results (for example AL 21.4% and RJ 12.1%). The heatmap shows where and when deliveries were late, not why: the cause of the February-March 2018 episode is not in this dataset.
+
 </details>
 
+## Recommendations
+
+These come from the data, but they are suggestions, not tested interventions.
+
+1. **Protect the delivery promise.** Even a delay of 1 to 3 days costs about a full star (4.29 vs. 3.29), so reliable estimated dates matter more than fast ones, especially in peak periods.
+2. **Plan capacity for peaks, region by region.** Black Friday 2017 hit Rio de Janeiro and Espírito Santo hardest, and February-March 2018 affected almost every state, while São Paulo coped well. Monitoring late rates per state in near real time would show these episodes as they start.
+3. **Review the weakest large categories** (`bed_bath_table`, `computers_accessories`, `furniture_decor`) for quality, packaging and delivery problems.
+4. **Invest in retention.** With 97% one-time buyers, even a small increase in repeat purchases would reduce the dependence on new customers, and good delivery experiences are the most obvious place to start.
 
 ## What I Learned
-Working through this project deepened my SQL skills in several ways beyond the fundamentals from my first project:
+Working through this project deepened my SQL and Python skills in several ways beyond the fundamentals from my first project:
 
 - **Two-step aggregation:** Recognizing when raw data is "too granular" for the question being asked — such as averaging order value, where I first had to sum item-level prices into order-level totals (via a CTE) before averaging across orders, to avoid distorting results.
 - **CASE for classification, not just display:** Using `CASE` to flag individual rows (e.g. "late" vs. "on time") *before* aggregating, rather than applying it to an already-averaged result — an important distinction that changes what the analysis actually measures.
 - **The `SUM(CASE...)` counting pattern:** Using `SUM()` on 0/1 flags as a way to count how many rows meet a condition within each group, alongside `COUNT(*)` for the total, to calculate percentages.
 - **Working with real-world data quality issues:** Encountering and resolving foreign key violations caused by missing category translations, and NULL categories in the review data — realistic problems that don't show up in cleaner tutorial datasets.
 - **Choosing the right grain for `customer_id`:** Learning to distinguish between `customer_id` (unique per order) and `customer_unique_id` (unique per person) — a dataset-specific quirk that would have silently produced wrong retention numbers if missed.
+- **Checking the grain of a grouping:** My first version of the late-delivery-by-month query grouped by month number only, which mixed March 2017 with March 2018 and gave a misleading result. Grouping by year and month showed that the real problem was concentrated in February and March 2018.
+- **Keeping definitions consistent across tools:** The SQL and Python analyses only agreed once both used the same rule for a "late" order (comparing dates, not timestamps).
+- **Merging and reshaping data in pandas:** joining several tables with `merge`, averaging duplicate reviews per order before joining, and using `groupby` with named aggregations and `pivot_table`.
+- **Telling a distinct count from a row count:** using `nunique()` to count orders when the data has one row per item.
+- **Visualizing two dimensions at once:** scatter and bubble charts, and heatmaps (state by month) instead of separate tables.
+- **Not trusting small samples:** hiding months and categories with too few orders, and checking whether an association could be explained by something else.
+- **Hiding unreliable results:** using `.where()` to blank out state-month combinations with fewer than 30 orders, so a single late order in a tiny cell does not look like a 50% problem.
+
+## Conclusions
+
+This analysis paints a picture of a marketplace with real growth alongside clear operational weaknesses:
+
+- **Revenue is healthy and diversified, but retention is the biggest weakness.** Revenue grew about eightfold during 2017 and is spread across very different categories (Health & Beauty, Watches & Gifts, Bed, Bath & Table), yet 97% of customers never came back.
+- **Delivery is the main driver of customer satisfaction.** Late orders are only 6.7% of deliveries, but they average 2.27 stars vs. 4.29 for on-time orders and account for about a third of all 1-2 star reviews. Even a delay of 1 to 3 days costs about a full star.
+- **Delivery problems come in waves, in specific places.** Late deliveries peaked during Black Friday season in November 2017 (12.4%, worst in Rio de Janeiro and Espírito Santo) and again in February-March 2018 (14.1% and 19.0%), when nearly every large state was affected. Outside these periods the late rate was only about 3-5%, and São Paulo stayed reliable throughout. Remote states also wait much longer in general (29.3 days in Roraima vs. 8.7 in São Paulo).
+- **Satisfaction differs by category, and several large categories are below average.** Health & Beauty scores above the average (about 4.14), while `bed_bath_table` (3.90), `computers_accessories` (3.93) and `furniture_decor` (3.91) sell in large volumes but score lower.
+
+Overall, the data points to two connected opportunities: **delivery reliability**, which most directly affects ratings, and **customer retention**, which would reduce the dependence on constant new-customer acquisition. It is plausible that better delivery would also improve repeat purchases, but this dataset cannot show that, so it remains a hypothesis to test.
+
+**Limitations:** The data covers only about two years, so seasonal effects cannot be separated from growth. Most findings are associations, not proof of cause, and the differences between categories are small.
